@@ -1,7 +1,8 @@
 import 'package:hive/hive.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/course.dart';
-// import '../models/video.dart';
+import 'package:uuid/uuid.dart';
+import '../models/video.dart';
 
 part 'course_repository.g.dart';
 
@@ -55,6 +56,37 @@ class CourseRepository {
         
         await updateCourse(updatedCourse);
       }
+    }
+  }
+  Future<void> createEmptyCourse(String title) async {
+    final course = Course(
+      id: const Uuid().v4(),
+      title: title,
+      thumbnailUrl: '', // Default or generated placeholder
+      sourceUrl: '',
+      dateAdded: DateTime.now(),
+      totalDuration: 0,
+      watchedDuration: 0,
+      isCompleted: false,
+      videos: [],
+    );
+    await addCourse(course);
+  }
+
+  Future<void> addResourceToCourse(String courseId, String content, String type) async {
+    final course = _courseBox.get(courseId);
+    if (course != null) {
+      final video = Video(
+        id: const Uuid().v4(),
+        youtubeId: '', // Not a YouTube video
+        title: content, // Use content as title for now
+        thumbnailUrl: '',
+        durationSeconds: 0,
+        resourceType: type,
+        content: content,
+      );
+      course.videos.add(video);
+      await course.save(); // Save the HiveList/Course
     }
   }
 }

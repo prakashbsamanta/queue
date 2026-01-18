@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../logic/providers.dart';
 import '../../logic/add_course_logic.dart';
 import '../../core/theme.dart';
 import '../widgets/neo_button.dart';
@@ -15,6 +16,8 @@ class AddCourseModal extends ConsumerStatefulWidget { // Changed to ConsumerStat
 class _AddCourseModalState extends ConsumerState<AddCourseModal> {
   final _urlController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _addToExisting = false;
+  String? _selectedCourseId;
 
   @override // Dispose controller
   void dispose() {
@@ -24,11 +27,37 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(addCourseLogicProvider.notifier).addCourseFromUrl(_urlController.text);
+      final input = _urlController.text.trim();
+      final isYouTube = input.contains('youtube.com') || input.contains('youtu.be');
+
+      if (_addToExisting) {
+         if (_selectedCourseId == null) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(content: Text('Please select a course')),
+           );
+           return;
+         }
+         
+         // Determine type
+         String type = 'text';
+         if (isYouTube) type = 'youtube';
+         else if (input.startsWith('http')) type = 'url';
+         
+         await ref.read(addCourseLogicProvider.notifier).addToExistingCourse(_selectedCourseId!, input, type);
+         
+      } else {
+        // Create New
+        if (isYouTube) {
+           await ref.read(addCourseLogicProvider.notifier).addCourseFromUrl(input);
+        } else {
+           await ref.read(addCourseLogicProvider.notifier).addCourseByName(input);
+        }
+      }
+
       if (mounted && !ref.read(addCourseLogicProvider).hasError) {
            Navigator.pop(context);
            ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Course Added Successfully')),
+             SnackBar(content: Text(_addToExisting ? 'Resource Added' : 'Course Created')),
            );
       }
     }
@@ -38,6 +67,7 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
   Widget build(BuildContext context) {
     // Listen to state to show errors or loading
     final addCourseState = ref.watch(addCourseLogicProvider);
+    final allCourses = ref.watch(allCoursesProvider);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -56,28 +86,70 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
               'Add New Knowledge Source',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
+            
+            // Toggle
+            if (allCourses.hasValue && allCourses.value!.isNotEmpty)
+            Row(
+              children: [
+                Switch(
+                  value: _addToExisting, 
+                  activeColor: AppTheme.accent,
+                  onChanged: (val) {
+                    setState(() {
+                      _addToExisting = val;
+                      if (!val) _selectedCourseId = null;
+                    });
+                  }
+                ),
+                Text('Add to Existing Course', style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+            
+            const SizedBox(height: 10),
+
+            // Dropdown
+            if (_addToExisting)
+               allCourses.when(
+                 data: (courses) => DropdownButtonFormField<String>(
+                   value: _selectedCourseId,
+                   dropdownColor: AppTheme.surface,
+                   decoration: InputDecoration(
+                     labelText: 'Select Course',
+                     filled: true,
+                     fillColor: Colors.white.withOpacity(0.05),
+                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                   ),
+                   items: courses.map((c) => DropdownMenuItem(
+                     value: c.id,
+                     child: Text(c.title, overflow: TextOverflow.ellipsis),
+                   )).toList(),
+                   onChanged: (val) => setState(() => _selectedCourseId = val),
+                 ),
+                 loading: () => const SizedBox.shrink(),
+                 error: (_,__) => const SizedBox.shrink(),
+               ),
+
+            if (_addToExisting) const SizedBox(height: 10),
+
             TextFormField(
               controller: _urlController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Paste YouTube Playlist or Video URL',
+                hintText: _addToExisting ? 'Paste Link or type Text' : 'Paste YouTube URL or Course Name',
                 filled: true,
                 fillColor: Colors.white.withOpacity(0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                prefixIcon: const Icon(Icons.link, color: AppTheme.accent),
+                prefixIcon: const Icon(Icons.edit_note, color: AppTheme.accent),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a URL';
+                  return 'Please enter content';
                 }
-                if (!value.contains('youtube.com') && !value.contains('youtu.be')) {
-                  return 'Invalid YouTube URL';
-                }
-                return null;
+                return null; // All input is valid now
               },
             ),
             const SizedBox(height: 20),
@@ -85,9 +157,9 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
               data: (_) => SizedBox(
                 width: double.infinity,
                 child: NeoButton(
-                  text: 'Extract & Add',
+                  text: _addToExisting ? 'Add Resource' : 'Create Course',
                   onPressed: _submit,
-                  icon: Icons.download_rounded,
+                  icon: _addToExisting ? Icons.add_link : Icons.library_add,
                 ),
               ),
               loading: () => const Center(
@@ -95,7 +167,7 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
                   children: [
                     CircularProgressIndicator(color: AppTheme.accent),
                     SizedBox(height: 10),
-                    Text('Extracting Knowledge...'),
+                    Text('Processing...'),
                   ],
                 ),
               ),

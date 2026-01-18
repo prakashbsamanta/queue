@@ -15,17 +15,26 @@ class AddCourseLogic extends _$AddCourseLogic {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final youtubeService = ref.read(youTubeServiceProvider);
-      try { // dispose is not needed if provider handles it or if service is disposable. 
-            // YouTubeService has dispose, but provider won't call it automatically unless we use autoDispose and ref.onDispose.
-            // But we are creating a new one in provider each time? No, default is autoDispose.
-            // Actually, let's keep it simple. ref.read gives us the service.
-            // The service is recreated? No, default provider caches it.
+      try {
         final course = await youtubeService.extractCourse(url);
         await ref.read(courseRepositoryProvider).addCourse(course);
       } finally {
-        // We probably shouldn't dispose the shared service here.
-        // youtubeService.dispose(); 
+        // No disposal needed here
       }
+    });
+  }
+
+  Future<void> addCourseByName(String name) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(courseRepositoryProvider).createEmptyCourse(name);
+    });
+  }
+
+  Future<void> addToExistingCourse(String courseId, String content, String type) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(courseRepositoryProvider).addResourceToCourse(courseId, content, type);
     });
   }
 }

@@ -25,6 +25,12 @@ class Video extends HiveObject {
   @HiveField(6)
   bool isCompleted;
 
+  @HiveField(7)
+  final String? resourceType; // 'youtube', 'url', 'text'
+
+  @HiveField(8)
+  final String? content; // The url or text body
+
   Video({
     required this.id,
     required this.youtubeId,
@@ -33,6 +39,8 @@ class Video extends HiveObject {
     required this.durationSeconds,
     this.watchedSeconds = 0,
     this.isCompleted = false,
+    this.resourceType,
+    this.content,
   });
 
   Video copyWith({
@@ -43,6 +51,8 @@ class Video extends HiveObject {
     int? durationSeconds,
     int? watchedSeconds,
     bool? isCompleted,
+    String? resourceType,
+    String? content,
   }) {
     return Video(
       id: id ?? this.id,
@@ -52,6 +62,8 @@ class Video extends HiveObject {
       durationSeconds: durationSeconds ?? this.durationSeconds,
       watchedSeconds: watchedSeconds ?? this.watchedSeconds,
       isCompleted: isCompleted ?? this.isCompleted,
+      resourceType: resourceType ?? this.resourceType,
+      content: content ?? this.content,
     );
   }
 }
