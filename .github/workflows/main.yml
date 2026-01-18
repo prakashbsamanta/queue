@@ -28,7 +28,7 @@ jobs:
       # Running integration tests as widget tests in headless environment
       # This works because we use mocks and don't rely on native device features
       - name: Run Layout Integration Tests
-        run: flutter test integration_test/app_test.dart
+        run: flutter test integration_test/app_test.dart -d flutter-tester
 
   build-android:
     name: Build Android Beta
