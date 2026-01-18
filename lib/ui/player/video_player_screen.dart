@@ -27,7 +27,6 @@ class VideoPlayerScreen extends ConsumerStatefulWidget {
 class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
   late YoutubePlayerController _controller;
   late String _currentVideoId;
-  final bool _isPlayerReady = false;
   Timer? _syncTimer;
   DateTime? _lastSyncTime;
 

@@ -22,7 +22,7 @@ class NeoButton extends StatelessWidget {
         boxShadow: isPrimary
             ? [
                 BoxShadow(
-                  color: AppTheme.accent.withOpacity(0.3),
+                  color: AppTheme.accent.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 )
@@ -39,7 +39,7 @@ class NeoButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             side: isPrimary
                 ? BorderSide.none
-                : BorderSide(color: Colors.white.withOpacity(0.1)),
+                : BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
         ),
         child: Row(

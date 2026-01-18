@@ -104,7 +104,7 @@ class _WeeklyChart extends ConsumerWidget {
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
             toY: 20, // Max scale
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
           ),
         ),
       ],
@@ -129,7 +129,7 @@ class _HeatMap extends StatelessWidget {
         final opacity = (index % 5 + 1) * 0.2; 
         return Container(
           decoration: BoxDecoration(
-            color: AppTheme.accent.withOpacity(opacity),
+            color: AppTheme.accent.withValues(alpha: opacity),
             borderRadius: BorderRadius.circular(4),
           ),
         );

@@ -170,7 +170,7 @@ class _VideoListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      tileColor: isCurrent ? AppTheme.accent.withOpacity(0.05) : null,
+      tileColor: isCurrent ? AppTheme.accent.withValues(alpha: 0.05) : null,
       leading: Container(
         width: 40,
         alignment: Alignment.center,

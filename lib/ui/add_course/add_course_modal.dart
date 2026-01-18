@@ -6,7 +6,7 @@ import '../../logic/add_course_logic.dart';
 import '../../core/theme.dart';
 import '../widgets/neo_button.dart';
 
-class AddCourseModal extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
+class AddCourseModal extends ConsumerStatefulWidget {
   const AddCourseModal({super.key});
 
   @override
@@ -40,8 +40,11 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
          
          // Determine type
          String type = 'text';
-         if (isYouTube) type = 'youtube';
-         else if (input.startsWith('http')) type = 'url';
+         if (isYouTube) {
+           type = 'youtube';
+         } else if (input.startsWith('http')) {
+           type = 'url';
+         }
          
          await ref.read(addCourseLogicProvider.notifier).addToExistingCourse(_selectedCourseId!, input, type);
          
@@ -94,7 +97,7 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
               children: [
                 Switch(
                   value: _addToExisting, 
-                  activeColor: AppTheme.accent,
+                  activeThumbColor: AppTheme.accent,
                   onChanged: (val) {
                     setState(() {
                       _addToExisting = val;
@@ -115,6 +118,7 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
                     padding: const EdgeInsets.only(bottom: 10), // Adding spacing
                     child: DropdownButtonFormField<String>(
                       isExpanded: true,
+                      // ignore: deprecated_member_use
                       value: _selectedCourseId,
                       dropdownColor: const Color(0xFF1E1E1E),
                       style: const TextStyle(color: Colors.white, fontSize: 16),
@@ -122,9 +126,9 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
                       decoration: InputDecoration(
                         // Remove labelText to behave like the Hint below
                         hintText: 'Select Course',
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)), // Match placeholder opacity
+                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)), 
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.05), // Match exactly
+                        fillColor: Colors.white.withValues(alpha: 0.05),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -163,7 +167,7 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
               decoration: InputDecoration(
                 hintText: _addToExisting ? 'Paste Link or type Text' : 'Paste YouTube URL or Course Name',
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.05),
+                fillColor: Colors.white.withValues(alpha: 0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,

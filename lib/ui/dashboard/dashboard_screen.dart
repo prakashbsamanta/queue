@@ -223,7 +223,7 @@ class _CourseCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -253,7 +253,7 @@ class _CourseCard extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.9),
+                      Colors.black.withValues(alpha: 0.9),
                     ],
                   ),
                 ),
@@ -266,7 +266,7 @@ class _CourseCard extends StatelessWidget {
               right: 0,
               height: 180 * progress, // Fills up based on progress
               child: Container(
-                color: AppTheme.accent.withOpacity(0.2),
+                color: AppTheme.accent.withValues(alpha: 0.2),
               ),
             ),
             
@@ -289,7 +289,7 @@ class _CourseCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                     color: AppTheme.accent,
                     minHeight: 4,
                   ),
