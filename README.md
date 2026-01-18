@@ -19,6 +19,7 @@ We use a **Neo-Brutalism** design language mixed with fluid animations to make a
 - **🎨 Dynamic UI**: Glassmorphism cards, smooth animations, and a UI that pops.
 - **🛠️ Universal Input**: One modal to rule them all—create new courses or add resources (Links/Text) to existing ones seamlessly.
 - **📈 Progress Tracking**: Visual progress bars and session tracking to keep you motivated.
+- **🤖 AI Ready**: Built-in configuration to bring your own API keys (OpenAI/Gemini) for future smart features.
 
 ---
 
