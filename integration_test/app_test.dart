@@ -43,7 +43,7 @@ class FakeYouTubeService implements YouTubeService {
     );
   }
 
-
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
