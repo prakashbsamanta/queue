@@ -1,0 +1,95 @@
+name: App Beta Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run Unit Tests
+        run: flutter test
+        
+      # Running integration tests as widget tests in headless environment
+      # This works because we use mocks and don't rely on native device features
+      - name: Run Layout Integration Tests
+        run: flutter test integration_test/app_test.dart
+
+  build-android:
+    name: Build Android Beta
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Setup Signing Key
+        run: |
+          cd android
+          # generate a random key for this build
+          keytool -genkey -v -keystore release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias release -storepass password123 -keypass password123 -dname "CN=Beta Build, OU=Engineering, O=QueueApp, L=Internet, S=Cloud, C=US"
+          
+          # create key.properties
+          echo "storePassword=password123" > key.properties
+          echo "keyPassword=password123" >> key.properties
+          echo "keyAlias=release" >> key.properties
+          echo "storeFile=release.jks" >> key.properties
+          
+      - name: Build APK
+        run: flutter build apk --release --build-number=${{ github.run_number }} --build-name=1.0.0-beta.${{ github.run_number }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  release:
+    name: Create GitHub Release
+    needs: build-android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "app-release.apk"
+          tag: "v1.0.0-beta.${{ github.run_number }}"
+          name: "Beta v1.0.0 (Build ${{ github.run_number }})"
+          body: "Automated Beta Release triggered by commit ${{ github.sha }}."
+          prerelease: true
+          token: ${{ secrets.GITHUB_TOKEN }}
