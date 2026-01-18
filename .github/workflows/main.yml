@@ -53,7 +53,7 @@ jobs:
         run: |
           cd android
           # generate a random key for this build
-          keytool -genkey -v -keystore release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias release -storepass password123 -keypass password123 -dname "CN=Beta Build, OU=Engineering, O=QueueApp, L=Internet, S=Cloud, C=US"
+          keytool -genkey -v -keystore app/release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias release -storepass password123 -keypass password123 -dname "CN=Beta Build, OU=Engineering, O=QueueApp, L=Internet, S=Cloud, C=US"
           
           # create key.properties
           echo "storePassword=password123" > key.properties
