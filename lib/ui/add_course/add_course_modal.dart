@@ -110,25 +110,50 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
 
             // Dropdown
             if (_addToExisting)
-               allCourses.when(
-                 data: (courses) => DropdownButtonFormField<String>(
-                   value: _selectedCourseId,
-                   dropdownColor: AppTheme.surface,
-                   decoration: InputDecoration(
-                     labelText: 'Select Course',
-                     filled: true,
-                     fillColor: Colors.white.withOpacity(0.05),
-                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                   ),
-                   items: courses.map((c) => DropdownMenuItem(
-                     value: c.id,
-                     child: Text(c.title, overflow: TextOverflow.ellipsis),
-                   )).toList(),
-                   onChanged: (val) => setState(() => _selectedCourseId = val),
-                 ),
-                 loading: () => const SizedBox.shrink(),
-                 error: (_,__) => const SizedBox.shrink(),
-               ),
+                allCourses.when(
+                  data: (courses) => Container(
+                    padding: const EdgeInsets.only(bottom: 10), // Adding spacing
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      value: _selectedCourseId,
+                      dropdownColor: const Color(0xFF1E1E1E),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.accent),
+                      decoration: InputDecoration(
+                        // Remove labelText to behave like the Hint below
+                        hintText: 'Select Course',
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)), // Match placeholder opacity
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.05), // Match exactly
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                           borderRadius: BorderRadius.circular(12),
+                           borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                           borderRadius: BorderRadius.circular(12),
+                           borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: const Icon(Icons.class_outlined, color: AppTheme.accent), // Match icon style
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      items: courses.map((c) => DropdownMenuItem(
+                        value: c.id,
+                        child: Text(
+                          c.title,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      )).toList(),
+                      onChanged: (val) => setState(() => _selectedCourseId = val),
+                    ),
+                  ),
+                  loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accent)),
+                  error: (_,__) => const SizedBox.shrink(),
+                ),
 
             if (_addToExisting) const SizedBox(height: 10),
 

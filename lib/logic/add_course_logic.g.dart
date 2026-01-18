@@ -6,7 +6,7 @@ part of 'add_course_logic.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$addCourseLogicHash() => r'3097f9b3beec2eba15714fc1f75a9adc6c60d736';
+String _$addCourseLogicHash() => r'5ba3b3b189e8f852b6f7d47e58ef0feb68db483b';
 
 /// See also [AddCourseLogic].
 @ProviderFor(AddCourseLogic)

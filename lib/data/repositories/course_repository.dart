@@ -78,15 +78,42 @@ class CourseRepository {
     if (course != null) {
       final video = Video(
         id: const Uuid().v4(),
-        youtubeId: '', // Not a YouTube video
-        title: content, // Use content as title for now
+        youtubeId: '', 
+        title: content,
         thumbnailUrl: '',
         durationSeconds: 0,
         resourceType: type,
         content: content,
       );
       course.videos.add(video);
-      await course.save(); // Save the HiveList/Course
+      await course.save(); 
+    }
+  }
+
+  Future<void> addVideoToCourse(String courseId, Video video) async {
+    final course = _courseBox.get(courseId);
+    if (course != null) {
+      course.videos.add(video);
+      // Recalculate total duration logic if needed, but for now just adding is fine
+      // Actually we should probably update totalDuration
+      final newTotalDuration = course.totalDuration + video.durationSeconds;
+      final updatedCourse = course.copyWith(
+        id: course.id,
+        title: course.title,
+        thumbnailUrl: course.thumbnailUrl,
+        sourceUrl: course.sourceUrl,
+        dateAdded: course.dateAdded,
+        totalDuration: newTotalDuration,
+        watchedDuration: course.watchedDuration,
+        isCompleted: course.isCompleted,
+        videos: course.videos, // Reference to HiveList is already mutated
+      );
+      // Since HiveList is live, we might just need to save. 
+      // check if 'course.videos.add' updates the list. Yes it does for HiveList. 
+      // But we also want to update the Course object fields (duration).
+      
+      // Let's rely on standard Hive save for the main object updates
+       await _courseBox.put(course.id, updatedCourse);
     }
   }
 }

@@ -28,8 +28,7 @@ class FakeYouTubeService implements YouTubeService {
     );
   }
 
-  @override
-  void dispose() {}
+
 }
 
 class FakeCourseRepository implements CourseRepository {
@@ -53,6 +52,21 @@ class FakeCourseRepository implements CourseRepository {
 
   @override
   Future<void> updateVideoProgress(String courseId, String videoId, int positionSeconds) async {}
+
+  @override
+  Future<void> createEmptyCourse(String title) async {
+    // Stub implementation
+  }
+
+  @override
+  Future<void> addResourceToCourse(String courseId, String content, String type) async {
+    // Stub implementation
+  }
+
+  @override
+  Future<void> addVideoToCourse(String courseId, Video video) async {
+    // Stub implementation
+  }
 }
 
 void main() {

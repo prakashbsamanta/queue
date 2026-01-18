@@ -34,7 +34,23 @@ class AddCourseLogic extends _$AddCourseLogic {
   Future<void> addToExistingCourse(String courseId, String content, String type) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await ref.read(courseRepositoryProvider).addResourceToCourse(courseId, content, type);
+      if (type == 'youtube') {
+        final youtubeService = ref.read(youTubeServiceProvider);
+        // Reuse the extraction logic. 
+        // Note: extractCourse returns a Course object with a list of videos.
+        final extractedCourse = await youtubeService.extractCourse(content);
+        
+        for (final video in extractedCourse.videos) {
+          // Ensure we persist the resource type and content url
+          final videoToAdd = video.copyWith(
+             resourceType: 'youtube',
+             content: content.contains('playlist') ? 'https://youtube.com/watch?v=${video.youtubeId}' : content,
+          );
+          await ref.read(courseRepositoryProvider).addVideoToCourse(courseId, videoToAdd);
+        }
+      } else {
+        await ref.read(courseRepositoryProvider).addResourceToCourse(courseId, content, type);
+      }
     });
   }
 }
