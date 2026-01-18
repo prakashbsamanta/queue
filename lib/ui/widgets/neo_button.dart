@@ -6,6 +6,7 @@ class NeoButton extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData? icon;
   final bool isPrimary;
+  final bool isFullWidth;
 
   const NeoButton({
     super.key,
@@ -13,10 +14,50 @@ class NeoButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.isPrimary = true,
+    this.isFullWidth = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget buttonContent = ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isPrimary ? AppTheme.accent : AppTheme.surface,
+        foregroundColor: isPrimary ? Colors.black : Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: isPrimary
+              ? BorderSide.none
+              : BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 20),
+            const SizedBox(width: 8),
+          ],
+          Text(
+            text,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (isFullWidth) {
+      buttonContent = SizedBox(
+        width: double.infinity,
+        child: buttonContent,
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         boxShadow: isPrimary
@@ -29,36 +70,7 @@ class NeoButton extends StatelessWidget {
               ]
             : [],
       ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? AppTheme.accent : AppTheme.surface,
-          foregroundColor: isPrimary ? Colors.black : Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: isPrimary
-                ? BorderSide.none
-                : BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 20),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              text,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: buttonContent,
     );
   }
 }

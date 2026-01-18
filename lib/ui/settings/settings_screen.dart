@@ -116,6 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               text: 'Save Configuration',
               onPressed: _save,
               isPrimary: true,
+              isFullWidth: true,
             ),
             const SizedBox(height: 20),
           ],
