@@ -22,6 +22,7 @@ void main() async {
   // Open Boxes
   await Hive.openBox<Course>('courses');
   await Hive.openBox<Session>('sessions');
+  await Hive.openBox('settings');
 
   runApp(const ProviderScope(child: FlowStateApp()));
 }

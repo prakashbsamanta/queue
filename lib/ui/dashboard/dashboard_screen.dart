@@ -9,6 +9,7 @@ import '../widgets/glass_card.dart';
 import '../add_course/add_course_modal.dart';
 import '../course_detail/course_detail_screen.dart';
 import '../analytics/analytics_screen.dart';
+import '../settings/settings_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -62,6 +63,12 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   
                   // Chart Button (Right)
+                  IconButton(
+                    onPressed: () {
+                       Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
+                    },
+                    icon: const Icon(Icons.settings, color: Colors.white),
+                  ),
                   IconButton(
                     onPressed: () {
                        Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalyticsScreen()));
