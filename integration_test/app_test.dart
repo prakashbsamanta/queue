@@ -43,10 +43,7 @@ class FakeYouTubeService implements YouTubeService {
     );
   }
 
-  @override
-  void dispose() {}
-  
-  @override
+
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
