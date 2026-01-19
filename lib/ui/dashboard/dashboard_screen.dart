@@ -10,6 +10,8 @@ import '../add_course/add_course_modal.dart';
 import '../course_detail/course_detail_screen.dart';
 import '../analytics/analytics_screen.dart';
 import '../settings/settings_screen.dart';
+import '../widgets/neo_loading.dart';
+import '../widgets/neo_error.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -133,10 +135,16 @@ class DashboardScreen extends ConsumerWidget {
               );
             },
             error: (err, stack) => SliverToBoxAdapter(
-              child: Center(child: Text('Error: $err')),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 50),
+                child: NeoError(error: err),
+              ),
             ),
             loading: () => const SliverToBoxAdapter(
-              child: Center(child: CircularProgressIndicator()),
+              child: Padding(
+                padding: EdgeInsets.only(top: 50),
+                child: NeoLoading(message: 'Loading Library...'),
+              ),
             ),
           ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 80)),

@@ -6,6 +6,9 @@ import '../../logic/add_course_logic.dart';
 import '../../core/theme.dart';
 import '../widgets/neo_button.dart';
 import '../widgets/neo_dropdown.dart';
+import '../widgets/neo_text_field.dart';
+import '../widgets/neo_loading.dart';
+import '../widgets/neo_error.dart';
 
 class AddCourseModal extends ConsumerStatefulWidget {
   const AddCourseModal({super.key});
@@ -133,24 +136,15 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
 
             if (_addToExisting) const SizedBox(height: 10),
 
-            TextFormField(
+            NeoTextField(
               controller: _urlController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: _addToExisting ? 'Paste Link or type Text' : 'Paste YouTube URL or Course Name',
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.05),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                prefixIcon: const Icon(Icons.edit_note, color: AppTheme.accent),
-              ),
+              hintText: _addToExisting ? 'Paste Link or type Text' : 'Paste YouTube URL or Course Name',
+              prefixIcon: const Icon(Icons.edit_note, color: AppTheme.accent),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter content';
                 }
-                return null; // All input is valid now
+                return null;
               },
             ),
             const SizedBox(height: 20),
@@ -163,30 +157,13 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
                   icon: _addToExisting ? Icons.add_link : Icons.library_add,
                 ),
               ),
-              loading: () => const Center(
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(color: AppTheme.accent),
-                    SizedBox(height: 10),
-                    Text('Processing...'),
-                  ],
-                ),
+              loading: () => const SizedBox(
+                height: 100,
+                child: NeoLoading(message: 'Processing...'),
               ),
-              error: (err, stack) => Column(
-                children: [
-                  Text(
-                    'Error: $err',
-                    style: const TextStyle(color: AppTheme.error),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: NeoButton(
-                      text: 'Retry',
-                      onPressed: _submit,
-                    ),
-                  )
-                ],
+              error: (err, stack) => NeoError(
+                error: err,
+                onRetry: _submit,
               ),
             ),
             const SizedBox(height: 40),

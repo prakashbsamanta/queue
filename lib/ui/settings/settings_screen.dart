@@ -4,6 +4,7 @@ import '../../core/theme.dart';
 import '../widgets/neo_button.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/neo_dropdown.dart';
+import '../widgets/neo_text_field.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -122,25 +123,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
+                    NeoTextField(
                       controller: _apiKeyController,
                       obscureText: _isObscure,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'sk-...',
-                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-                        border: InputBorder.none,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isObscure ? Icons.visibility_off : Icons.visibility,
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isObscure = !_isObscure;
-                            });
-                          },
+                      hintText: 'sk-...',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isObscure ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.white.withValues(alpha: 0.5),
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _isObscure = !_isObscure;
+                          });
+                        },
                       ),
                     ),
                   ],
