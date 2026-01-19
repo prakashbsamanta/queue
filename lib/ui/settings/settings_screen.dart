@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/theme.dart';
 import '../widgets/neo_button.dart';
 import '../widgets/glass_card.dart';
+import 'expandable_provider_selector.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,11 +16,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _apiKeyController;
   final Box _box = Hive.box('settings');
   bool _isObscure = true;
+  String _selectedProvider = 'openai';
 
   @override
   void initState() {
     super.initState();
     _apiKeyController = TextEditingController(text: _box.get('ai_api_key', defaultValue: ''));
+    _selectedProvider = _box.get('ai_provider', defaultValue: 'openai');
   }
 
   @override
@@ -30,6 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _save() async {
     await _box.put('ai_api_key', _apiKeyController.text.trim());
+    await _box.put('ai_provider', _selectedProvider);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -77,12 +81,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'OpenAI / Gemini API Key', // Generic label for now
+                      'AI Provider',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppTheme.accent,
-                        fontSize: 12, 
-                        letterSpacing: 1.1
+                        fontSize: 12,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ExpandableProviderSelector(
+                      selectedProvider: _selectedProvider,
+                      onSelected: (value) {
+                        setState(() {
+                          _selectedProvider = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'API Key',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.accent,
+                        fontSize: 12,
+                        letterSpacing: 1.1,
                       ),
                     ),
                     const SizedBox(height: 8),
