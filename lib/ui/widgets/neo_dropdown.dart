@@ -1,61 +1,72 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 
-class ExpandableProviderSelector extends StatefulWidget {
-  final String selectedProvider;
-  final ValueChanged<String> onSelected;
+class NeoDropdownEntry<T> {
+  final T value;
+  final String label;
 
-  const ExpandableProviderSelector({
+  const NeoDropdownEntry({required this.value, required this.label});
+}
+
+class NeoDropdown<T> extends StatefulWidget {
+  final T? selectedValue;
+  final List<NeoDropdownEntry<T>> entries;
+  final ValueChanged<T> onSelected;
+  final String hintText;
+
+  const NeoDropdown({
     super.key,
-    required this.selectedProvider,
+    required this.selectedValue,
+    required this.entries,
     required this.onSelected,
+    this.hintText = 'Select Option',
   });
 
   @override
-  State<ExpandableProviderSelector> createState() => _ExpandableProviderSelectorState();
+  State<NeoDropdown<T>> createState() => _NeoDropdownState<T>();
 }
 
-class _ExpandableProviderSelectorState extends State<ExpandableProviderSelector>
+class _NeoDropdownState<T> extends State<NeoDropdown<T>>
     with SingleTickerProviderStateMixin {
   bool _isMenuOpen = false;
   late TextEditingController _searchController;
   late FocusNode _searchFocusNode;
 
-  final Map<String, String> _allProviders = {
-    'openai': 'OpenAI',
-    'gemini': 'Google Gemini',
-    'anthropic': 'Anthropic (Claude)',
-    'perplexity': 'Perplexity',
-    'openrouter': 'OpenRouter',
-    'deepseek': 'DeepSeek',
-    'groq': 'Groq',
-  };
-
-  List<String> _filteredProviderKeys = [];
+  List<NeoDropdownEntry<T>> _filteredEntries = [];
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     _searchFocusNode = FocusNode();
-    _filteredProviderKeys = _allProviders.keys.toList();
+    _filteredEntries = widget.entries;
     
-    // Set initial text to selected provider label ONLY if not opening
     _updateSearchText();
 
     _searchController.addListener(_onSearchChanged);
   }
 
   void _updateSearchText() {
-    final label = _allProviders[widget.selectedProvider] ?? 'Select Provider';
-    _searchController.text = label;
+    if (widget.selectedValue != null) {
+      final selectedEntry = widget.entries.firstWhere(
+        (e) => e.value == widget.selectedValue,
+        orElse: () => NeoDropdownEntry(value: widget.selectedValue as T, label: ''),
+      );
+      _searchController.text = selectedEntry.label;
+    } else {
+      _searchController.text = widget.hintText;
+    }
   }
 
   @override
-  void didUpdateWidget(covariant ExpandableProviderSelector oldWidget) {
+  void didUpdateWidget(covariant NeoDropdown<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selectedProvider != oldWidget.selectedProvider && !_isMenuOpen) {
+    if (widget.selectedValue != oldWidget.selectedValue && !_isMenuOpen) {
        _updateSearchText();
+    }
+    // Update filtered entries if the source list changes
+    if (widget.entries != oldWidget.entries) {
+      _filteredEntries = widget.entries;
     }
   }
 
@@ -66,9 +77,8 @@ class _ExpandableProviderSelectorState extends State<ExpandableProviderSelector>
     if (!_isMenuOpen) return;
 
     setState(() {
-      _filteredProviderKeys = _allProviders.keys.where((key) {
-        final label = _allProviders[key]!.toLowerCase();
-        return label.contains(query);
+      _filteredEntries = widget.entries.where((entry) {
+        return entry.label.toLowerCase().contains(query);
       }).toList();
     });
   }
@@ -86,7 +96,7 @@ class _ExpandableProviderSelectorState extends State<ExpandableProviderSelector>
       if (_isMenuOpen) {
         // Opening: Clear text to allow search, request focus
         _searchController.clear();
-        _filteredProviderKeys = _allProviders.keys.toList();
+        _filteredEntries = widget.entries;
         _searchFocusNode.requestFocus();
       } else {
         // Closing: Restore selected provider text, unfocus
@@ -96,13 +106,15 @@ class _ExpandableProviderSelectorState extends State<ExpandableProviderSelector>
     });
   }
 
-  void _selectProvider(String key) {
-    widget.onSelected(key);
+  void _selectItem(T value) {
+    widget.onSelected(value);
     _toggleMenu(); // Close menu
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSelectedValueNull = widget.selectedValue == null;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -129,15 +141,17 @@ class _ExpandableProviderSelectorState extends State<ExpandableProviderSelector>
             onTap: _toggleMenu,
             borderRadius: BorderRadius.circular(16),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), // Match previous padding
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), 
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _searchController,
                       focusNode: _searchFocusNode,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: (isSelectedValueNull && !_isMenuOpen) 
+                            ? Colors.white.withValues(alpha: 0.6) 
+                            : Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -151,6 +165,7 @@ class _ExpandableProviderSelectorState extends State<ExpandableProviderSelector>
                           _toggleMenu();
                         }
                       },
+                      readOnly: false, // Keep editable for search
                     ),
                   ),
                   AnimatedRotation(
@@ -174,19 +189,18 @@ class _ExpandableProviderSelectorState extends State<ExpandableProviderSelector>
               child: ListView.builder(
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
-                itemCount: _filteredProviderKeys.length,
+                itemCount: _filteredEntries.length,
                 itemBuilder: (context, index) {
-                  final key = _filteredProviderKeys[index];
-                  final label = _allProviders[key]!;
-                  final isSelected = key == widget.selectedProvider;
+                  final entry = _filteredEntries[index];
+                  final isSelected = entry.value == widget.selectedValue;
 
                   return InkWell(
-                    onTap: () => _selectProvider(key),
+                    onTap: () => _selectItem(entry.value),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       color: isSelected ? AppTheme.accent.withValues(alpha: 0.1) : null,
                       child: Text(
-                        label,
+                        entry.label,
                         style: TextStyle(
                           color: isSelected ? AppTheme.accent : Colors.white.withValues(alpha: 0.7),
                           fontSize: 15,

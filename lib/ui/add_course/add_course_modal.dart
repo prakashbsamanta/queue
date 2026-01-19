@@ -5,6 +5,7 @@ import '../../logic/providers.dart';
 import '../../logic/add_course_logic.dart';
 import '../../core/theme.dart';
 import '../widgets/neo_button.dart';
+import '../widgets/neo_dropdown.dart';
 
 class AddCourseModal extends ConsumerStatefulWidget {
   const AddCourseModal({super.key});
@@ -115,44 +116,15 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
             if (_addToExisting)
                 allCourses.when(
                   data: (courses) => Container(
-                    padding: const EdgeInsets.only(bottom: 10), // Adding spacing
-                    child: DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      // ignore: deprecated_member_use
-                      value: _selectedCourseId,
-                      dropdownColor: const Color(0xFF1E1E1E),
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                      icon: const Icon(Icons.arrow_drop_down, color: AppTheme.accent),
-                      decoration: InputDecoration(
-                        // Remove labelText to behave like the Hint below
-                        hintText: 'Select Course',
-                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)), 
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                           borderRadius: BorderRadius.circular(12),
-                           borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                           borderRadius: BorderRadius.circular(12),
-                           borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: const Icon(Icons.class_outlined, color: AppTheme.accent), // Match icon style
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      ),
-                      items: courses.map((c) => DropdownMenuItem(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: NeoDropdown<String>(
+                      selectedValue: _selectedCourseId,
+                      hintText: 'Select Course',
+                      entries: courses.map((c) => NeoDropdownEntry(
                         value: c.id,
-                        child: Text(
-                          c.title,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.white),
-                        ),
+                        label: c.title,
                       )).toList(),
-                      onChanged: (val) => setState(() => _selectedCourseId = val),
+                      onSelected: (val) => setState(() => _selectedCourseId = val),
                     ),
                   ),
                   loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accent)),

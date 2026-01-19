@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/theme.dart';
 import '../widgets/neo_button.dart';
 import '../widgets/glass_card.dart';
-import 'expandable_provider_selector.dart';
+import '../widgets/neo_dropdown.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -17,6 +17,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final Box _box = Hive.box('settings');
   bool _isObscure = true;
   String _selectedProvider = 'openai';
+
+  final Map<String, String> _providerLabels = {
+    'openai': 'OpenAI',
+    'gemini': 'Google Gemini',
+    'anthropic': 'Anthropic (Claude)',
+    'perplexity': 'Perplexity',
+    'openrouter': 'OpenRouter',
+    'deepseek': 'DeepSeek',
+    'groq': 'Groq',
+  };
 
   @override
   void initState() {
@@ -90,8 +100,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ExpandableProviderSelector(
-                      selectedProvider: _selectedProvider,
+                    NeoDropdown<String>(
+                      selectedValue: _selectedProvider,
+                      entries: _providerLabels.entries
+                          .map((e) => NeoDropdownEntry(value: e.key, label: e.value))
+                          .toList(),
                       onSelected: (value) {
                         setState(() {
                           _selectedProvider = value;
