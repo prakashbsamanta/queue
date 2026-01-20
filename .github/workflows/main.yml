@@ -64,14 +64,23 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
           echo "storeFile=release.jks" >> key.properties
           
-      - name: Build APK
-        run: flutter build apk --release --build-number=${{ github.run_number }} --build-name=1.0.0-beta.${{ github.run_number }}
+      - name: Build App Bundle
+        run: flutter build appbundle --release --build-number=${{ github.run_number }} --build-name=1.0.0-beta.${{ github.run_number }}
 
-      - name: Upload Artifact
+      - name: Build Split APKs
+        run: flutter build apk --release --split-per-abi --build-number=${{ github.run_number }} --build-name=1.0.0-beta.${{ github.run_number }}
+
+      - name: Upload App Bundle
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: app-bundle
+          path: build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload Split APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apks
+          path: build/app/outputs/flutter-apk/*.apk
 
   release:
     name: Create GitHub Release
@@ -82,17 +91,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Download Artifact
+      - name: Download App Bundle
         uses: actions/download-artifact@v4
         with:
-          name: app-release
+          name: app-bundle
+          path: build/app/outputs/bundle/release
+
+      - name: Download Split APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: app-apks
+          path: build/app/outputs/flutter-apk
 
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "app-release.apk"
+          artifacts: "build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/app-release.aab"
           tag: "v1.0.0-beta.${{ github.run_number }}"
           name: "Beta v1.0.0 (Build ${{ github.run_number }})"
           body: "Automated Beta Release triggered by commit ${{ github.sha }}."
           prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-web:
+    name: Build Web
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build web --release
+      - name: Upload Web Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy-web:
+    name: Deploy to GitHub Pages
+    needs: build-web
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
