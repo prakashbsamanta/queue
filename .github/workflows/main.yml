@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   quality:
@@ -49,16 +52,16 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Setup Signing Key
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.jks
+
+      - name: Create key.properties
         run: |
           cd android
-          # generate a random key for this build
-          keytool -genkey -v -keystore app/release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias release -storepass password123 -keypass password123 -dname "CN=Beta Build, OU=Engineering, O=QueueApp, L=Internet, S=Cloud, C=US"
-          
-          # create key.properties
-          echo "storePassword=password123" > key.properties
-          echo "keyPassword=password123" >> key.properties
-          echo "keyAlias=release" >> key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" > key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
           echo "storeFile=release.jks" >> key.properties
           
       - name: Build APK
