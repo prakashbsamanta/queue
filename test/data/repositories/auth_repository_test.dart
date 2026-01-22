@@ -59,5 +59,22 @@ void main() {
 
       expect(authRepository.authStateChanges, stream);
     });
+
+    test('currentUser returns value from AuthService', () {
+      when(mockAuthService.currentUser).thenReturn(mockUser);
+      expect(authRepository.currentUser, mockUser);
+    });
+
+    test('signInWithGoogle delegates to AuthService', () async {
+      when(mockAuthService.signInWithGoogle()).thenAnswer((_) async => mockUser);
+      final result = await authRepository.signInWithGoogle();
+      verify(mockAuthService.signInWithGoogle()).called(1);
+      expect(result, mockUser);
+    });
+
+    test('sendPasswordResetEmail delegates to AuthService', () async {
+      await authRepository.sendPasswordResetEmail(email);
+      verify(mockAuthService.sendPasswordResetEmail(email)).called(1);
+    });
   });
 }

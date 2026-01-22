@@ -2,4 +2,5 @@
 . "$(dirname "$0")/_/husky.sh"
 
 flutter analyze
-flutter test
+flutter test --coverage
+./scripts/check_coverage.sh

@@ -77,5 +77,50 @@ void main() {
         verify(mockUser.updateDisplayName(name)).called(1);
         expect(result, mockUser);
     });
+
+    test('signInWithGoogle signs in and returns user', () async {
+      final mockGoogleUser = MockGoogleSignInAccount();
+      final mockGoogleAuth = MockGoogleSignInAuthentication();
+      final mockOAuthCredential = MockUserCredential(); // Credential return is usually UserCredential
+
+      when(mockGoogleSignIn.signIn()).thenAnswer((_) async => mockGoogleUser);
+      when(mockGoogleUser.authentication).thenAnswer((_) async => mockGoogleAuth);
+      when(mockGoogleAuth.accessToken).thenReturn('access_token');
+      when(mockGoogleAuth.idToken).thenReturn('id_token');
+      when(mockAuth.signInWithCredential(any)).thenAnswer((_) async => mockOAuthCredential);
+      when(mockOAuthCredential.user).thenReturn(mockUser);
+
+      final result = await authService.signInWithGoogle();
+
+      verify(mockGoogleSignIn.signIn()).called(1);
+      verify(mockAuth.signInWithCredential(any)).called(1);
+      expect(result, mockUser);
+    });
+
+    test('signInWithGoogle returns null if cancelled', () async {
+      when(mockGoogleSignIn.signIn()).thenAnswer((_) async => null);
+
+      final result = await authService.signInWithGoogle();
+
+      verify(mockGoogleSignIn.signIn()).called(1);
+      verifyNever(mockAuth.signInWithCredential(any));
+      expect(result, null);
+    });
+
+    test('sendPasswordResetEmail calls firebase auth', () async {
+      await authService.sendPasswordResetEmail(email);
+      verify(mockAuth.sendPasswordResetEmail(email: email)).called(1);
+    });
+
+    test('getAuthExceptionMessage returns correct messages', () {
+      expect(authService.getAuthExceptionMessage(FirebaseAuthException(code: 'user-not-found')), 'There is no user corresponding to this email.');
+      expect(authService.getAuthExceptionMessage(FirebaseAuthException(code: 'wrong-password')), contains('user record corresponding'));
+      expect(authService.getAuthExceptionMessage('Random Error'), 'Random Error');
+    });
+
+    test('currentUser returns auth.currentUser', () {
+      when(mockAuth.currentUser).thenReturn(mockUser);
+      expect(authService.currentUser, mockUser);
+    });
   });
 }
