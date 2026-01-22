@@ -13,8 +13,12 @@ abstract class AuthService {
 }
 
 class FirebaseAuthService implements AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseAuth _auth;
+  final GoogleSignIn _googleSignIn;
+
+  FirebaseAuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
+      : _auth = auth ?? FirebaseAuth.instance,
+        _googleSignIn = googleSignIn ?? GoogleSignIn();
 
   @override
   Stream<User?> get authStateChanges => _auth.authStateChanges();
