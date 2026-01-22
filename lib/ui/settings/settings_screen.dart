@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/theme.dart';
+import '../../logic/providers.dart';
 import '../widgets/neo_button.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/neo_dropdown.dart';
 import '../widgets/neo_text_field.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _apiKeyController;
-  final Box _box = Hive.box('settings');
+  late Box _box;
   bool _isObscure = true;
   String _selectedProvider = 'openai';
 
@@ -32,6 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _box = ref.read(settingsBoxProvider);
     _apiKeyController = TextEditingController(text: _box.get('ai_api_key', defaultValue: ''));
     _selectedProvider = _box.get('ai_provider', defaultValue: 'openai');
   }

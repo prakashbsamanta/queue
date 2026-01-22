@@ -8,9 +8,12 @@ import '../models/course.dart';
 
 class YouTubeService {
   final Uuid _uuid = const Uuid();
+  final yt.YoutubeExplode? _injectedClient;
+
+  YouTubeService([this._injectedClient]);
 
   Future<Course> extractCourse(String url) async {
-    final client = yt.YoutubeExplode();
+    final client = _injectedClient ?? yt.YoutubeExplode();
     try {
       debugPrint('🔍 Extracting YouTube URL: $url');
       final stopwatch = Stopwatch()..start();

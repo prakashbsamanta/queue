@@ -21,11 +21,9 @@ LCOV_FILTERED="coverage/lcov_filtered.info"
 if command -v lcov &> /dev/null; then
     # Filter for lib/core and lib/data
     # Filter for Authentiction Critical Path ONLY (since we haven't implemented other data tests yet)
-    # Including generic *lib/data* pulls in untested CourseRepository/YoutubeService/Models
-    lcov --extract "$LCOV_FILE" "*auth_service.dart" "*auth_repository.dart" -o "$LCOV_FILTERED"
-    
-    # Exclude generated files (optional, but good practice if we matched them)
-    lcov --remove "$LCOV_FILTERED" "*.g.dart" -o "$LCOV_FILTERED"
+    # Reverting to GLOBAL check as requested by user.
+    # Exclude generated files and potentially main.dart if hard to test
+    lcov --remove "$LCOV_FILE" "*.g.dart" "lib/main.dart" "lib/core/theme.dart" --ignore-errors unused -o "$LCOV_FILTERED"
 else
     # Fallback if lcov extract not available or fails, use original (not ideal but safe)
     cp "$LCOV_FILE" "$LCOV_FILTERED"

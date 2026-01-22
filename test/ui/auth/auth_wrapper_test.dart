@@ -60,6 +60,24 @@ void main() {
       
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(seconds: 1));
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 1));
     });
+  });
+
+  testWidgets('AuthWrapper shows Error when stream errors', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authStateChangesProvider.overrideWith((ref) => Stream.error('Auth Error')),
+        ],
+        child: const MaterialApp(
+          home: AuthWrapper(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Auth Error'), findsOneWidget); // Assumes NeoError shows the error string
   });
 }
