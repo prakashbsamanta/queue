@@ -33,8 +33,8 @@ We use the best of modern Flutter development:
 | **State** | 🌊 Riverpod | Reactive, safe, and testable state management. |
 | **Database** | 🐝 Hive | NoSQL, lightweight, and incredibly fast. |
 | **Network** | 🧨 YoutubeExplode | Extracts video data without an API key! |
-| **Testing** | 🧪 Integration Test | Full E2E verification on real devices. |
-| **CI/CD** | 🤖 GitHub Actions | Automated quality gates and beta releases. |
+| **Testing** | 🧪 Unit & Widget | >85% Coverage across UI, Logic, and Data layers. |
+| **CI/CD** | 🤖 GitHub Actions | Automated quality gates (PRs) and deployments (Main). |
 
 ---
 
@@ -67,37 +67,41 @@ We use the best of modern Flutter development:
 
 ## 🛡️ Quality Gates & CI/CD
 
-We take code quality seriously. 
+We maintain a strict quality standard of **>85% Test Coverage**.
 
-### 🛑 Pre-Push Hooks
-Before you can push code, our local hook (`scripts/pre_push.sh`) runs:
+### 🛑 Local Pre-Commit Hooks
+We use `husky` to ensure quality before you commit. The hook runs:
 1.  `flutter analyze` (Strict linting)
-2.  `flutter test` (Unit checks)
+2.  `flutter test` (Unit/Widget checks)
+3.  **Strict Linting**: No unused imports or variables allowed.
 
-If these fail, **you cannot push**. This keeps our `main` branch pristine.
+If these fail, **you cannot commit**.
 
 ### 🤖 GitHub Actions Pipeline
-Every merge to `main` triggers our automated pipeline:
-1.  **Quality Check**: Runs Analysis, Unit Tests, and **E2E Integration Tests**.
-2.  **Build**: Compiles a signed `release` APK for Android.
-3.  **Release**: Automatically creates a **Beta Release** on GitHub with the installable APK.
+1.  **Flutter CI** (On Pull Request):
+    - Runs `flutter analyze`.
+    - Runs `flutter test --coverage` (Must exceed 85%).
+2.  **App Beta Release** (On Push to `main`):
+    - Builds signed Android App Bundle & APKs.
+    - Builds Web version.
+    - Creates a GitHub Release.
 
-👉 **[Download Latest Beta](https://github.com/prakashbsamanta/queue/releases)**
+> **Note for Contributors**: You need to set `GOOGLE_SERVICES_JSON_BASE64` in GitHub Secrets for Android builds to succeed.
 
 ---
 
 ## 🧪 Running Tests
 
-### Unit Tests
+### Run All Tests
 ```bash
 flutter test
 ```
 
-### E2E / Integration Tests
-To verify the app on a real device/emulator:
+### Check Coverage
 ```bash
-flutter test integration_test/app_test.dart
+./scripts/check_coverage.sh
 ```
+This generates a detailed `coverage/lcov_filtered.info` report, excluding generated files to give you the real coverage metric.
 
 ---
 

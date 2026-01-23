@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase Config
+google-services.json
+GoogleService-Info.plist
+
+# Test Cache
+test_cache/

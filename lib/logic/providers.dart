@@ -6,6 +6,11 @@ import '../data/models/course.dart';
 part 'providers.g.dart';
 
 @riverpod
+Box settingsBox(SettingsBoxRef ref) {
+  return Hive.box('settings');
+}
+
+@riverpod
 Stream<List<Course>> allCourses(AllCoursesRef ref) async* {
   // Access the box directly or via repository if we exposed the box.
   // Ideally repository handles this.

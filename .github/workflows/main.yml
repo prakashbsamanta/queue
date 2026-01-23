@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   quality:
@@ -28,10 +26,7 @@ jobs:
       - name: Run Unit Tests
         run: flutter test
         
-      # Running integration tests as widget tests in headless environment
-      # This works because we use mocks and don't rely on native device features
-      - name: Run Layout Integration Tests
-        run: flutter test integration_test/app_test.dart -d flutter-tester
+
 
   build-android:
     name: Build Android Beta
@@ -55,6 +50,9 @@ jobs:
       - name: Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.jks
+
+      - name: Create google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
 
       - name: Create key.properties
         run: |

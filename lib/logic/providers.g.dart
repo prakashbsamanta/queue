@@ -6,6 +6,20 @@ part of 'providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$settingsBoxHash() => r'651dfeaf6c5c917206a0cf744db5d0eff1db6a2f';
+
+/// See also [settingsBox].
+@ProviderFor(settingsBox)
+final settingsBoxProvider = AutoDisposeProvider<Box>.internal(
+  settingsBox,
+  name: r'settingsBoxProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$settingsBoxHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef SettingsBoxRef = AutoDisposeProviderRef<Box>;
 String _$allCoursesHash() => r'06752242d2bfebc1c3caafbf449eec7c5b726034';
 
 /// See also [allCourses].
