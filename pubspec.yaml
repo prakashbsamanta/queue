@@ -36,6 +36,7 @@ dependencies:
   firebase_core: ^4.4.0
   firebase_auth: ^6.1.4
   google_sign_in: ^6.2.1
+  receive_sharing_intent: ^1.8.1
 
 dev_dependencies:
   flutter_test:
@@ -51,6 +52,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   hive_test: ^1.0.1
   network_image_mock: ^2.1.1
+  sqflite_common_ffi: ^2.3.7+1
 
 flutter_launcher_icons:
   android: "launcher_icon"

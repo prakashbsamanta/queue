@@ -12,7 +12,8 @@ class CourseRepository {
   CourseRepository(this._courseBox);
 
   List<Course> getAllCourses() {
-    return _courseBox.values.toList()..sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
+    return _courseBox.values.toList()
+      ..sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
   }
 
   Future<void> addCourse(Course course) async {
@@ -27,37 +28,41 @@ class CourseRepository {
     await _courseBox.delete(id);
   }
 
-  Future<void> updateVideoProgress(String courseId, String videoId, int positionSeconds) async {
+  Future<void> updateVideoProgress(
+      String courseId, String videoId, int positionSeconds) async {
     final course = _courseBox.get(courseId);
     if (course != null) {
       final videoIndex = course.videos.indexWhere((v) => v.id == videoId);
       if (videoIndex != -1) {
         final video = course.videos[videoIndex];
-        
+
         // Calculate new watched Duration for course
         // This logic is simplified; a real implementation would track unique segments watched.
         // For now, we assume linear progression.
-        
+
         final updatedVideo = video.copyWith(
           watchedSeconds: positionSeconds,
-          isCompleted: positionSeconds >= (video.durationSeconds * 0.9), // 90% threshold
+          isCompleted:
+              positionSeconds >= (video.durationSeconds * 0.9), // 90% threshold
         );
 
         course.videos[videoIndex] = updatedVideo;
         // await course.save(); // Redundant and hard to test without box
-        
+
         // Update course total progress
-        int totalWatched = course.videos.fold(0, (sum, v) => sum + v.watchedSeconds);
+        int totalWatched =
+            course.videos.fold(0, (sum, v) => sum + v.watchedSeconds);
         final updatedCourse = course.copyWith(
           lastPlayedVideoId: videoId,
           watchedDuration: totalWatched,
           isCompleted: course.videos.every((v) => v.isCompleted),
         );
-        
+
         await updateCourse(updatedCourse);
       }
     }
   }
+
   Future<void> createEmptyCourse(String title) async {
     final course = Course(
       id: const Uuid().v4(),
@@ -73,12 +78,13 @@ class CourseRepository {
     await addCourse(course);
   }
 
-  Future<void> addResourceToCourse(String courseId, String content, String type) async {
+  Future<void> addResourceToCourse(
+      String courseId, String content, String type) async {
     final course = _courseBox.get(courseId);
     if (course != null) {
       final video = Video(
         id: const Uuid().v4(),
-        youtubeId: '', 
+        youtubeId: '',
         title: content,
         thumbnailUrl: '',
         durationSeconds: 0,
@@ -86,7 +92,7 @@ class CourseRepository {
         content: content,
       );
       course.videos.add(video);
-      await course.save(); 
+      await _courseBox.put(course.id, course);
     }
   }
 
@@ -108,12 +114,12 @@ class CourseRepository {
         isCompleted: course.isCompleted,
         videos: course.videos, // Reference to HiveList is already mutated
       );
-      // Since HiveList is live, we might just need to save. 
-      // check if 'course.videos.add' updates the list. Yes it does for HiveList. 
+      // Since HiveList is live, we might just need to save.
+      // check if 'course.videos.add' updates the list. Yes it does for HiveList.
       // But we also want to update the Course object fields (duration).
-      
+
       // Let's rely on standard Hive save for the main object updates
-       await _courseBox.put(course.id, updatedCourse);
+      await _courseBox.put(course.id, updatedCourse);
     }
   }
 }

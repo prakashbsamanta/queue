@@ -815,10 +815,122 @@ class MockFirebaseAuth extends _i1.Mock implements _i4.FirebaseAuth {
       ) as _i6.Future<_i3.PasswordValidationStatus>);
 }
 
-/// A class which mocks [UserCredential].
+/// A class which mocks [GoogleSignIn].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockUserCredential extends _i1.Mock implements _i4.UserCredential {}
+class MockGoogleSignIn extends _i1.Mock implements _i5.GoogleSignIn {
+  @override
+  _i8.SignInOption get signInOption => (super.noSuchMethod(
+        Invocation.getter(#signInOption),
+        returnValue: _i8.SignInOption.standard,
+        returnValueForMissingStub: _i8.SignInOption.standard,
+      ) as _i8.SignInOption);
+
+  @override
+  List<String> get scopes => (super.noSuchMethod(
+        Invocation.getter(#scopes),
+        returnValue: <String>[],
+        returnValueForMissingStub: <String>[],
+      ) as List<String>);
+
+  @override
+  bool get forceCodeForRefreshToken => (super.noSuchMethod(
+        Invocation.getter(#forceCodeForRefreshToken),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  _i6.Stream<_i5.GoogleSignInAccount?> get onCurrentUserChanged =>
+      (super.noSuchMethod(
+        Invocation.getter(#onCurrentUserChanged),
+        returnValue: _i6.Stream<_i5.GoogleSignInAccount?>.empty(),
+        returnValueForMissingStub: _i6.Stream<_i5.GoogleSignInAccount?>.empty(),
+      ) as _i6.Stream<_i5.GoogleSignInAccount?>);
+
+  @override
+  _i6.Future<_i5.GoogleSignInAccount?> signInSilently({
+    bool? suppressErrors = true,
+    bool? reAuthenticate = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #signInSilently,
+          [],
+          {
+            #suppressErrors: suppressErrors,
+            #reAuthenticate: reAuthenticate,
+          },
+        ),
+        returnValue: _i6.Future<_i5.GoogleSignInAccount?>.value(),
+        returnValueForMissingStub: _i6.Future<_i5.GoogleSignInAccount?>.value(),
+      ) as _i6.Future<_i5.GoogleSignInAccount?>);
+
+  @override
+  _i6.Future<bool> isSignedIn() => (super.noSuchMethod(
+        Invocation.method(
+          #isSignedIn,
+          [],
+        ),
+        returnValue: _i6.Future<bool>.value(false),
+        returnValueForMissingStub: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
+
+  @override
+  _i6.Future<_i5.GoogleSignInAccount?> signIn() => (super.noSuchMethod(
+        Invocation.method(
+          #signIn,
+          [],
+        ),
+        returnValue: _i6.Future<_i5.GoogleSignInAccount?>.value(),
+        returnValueForMissingStub: _i6.Future<_i5.GoogleSignInAccount?>.value(),
+      ) as _i6.Future<_i5.GoogleSignInAccount?>);
+
+  @override
+  _i6.Future<_i5.GoogleSignInAccount?> signOut() => (super.noSuchMethod(
+        Invocation.method(
+          #signOut,
+          [],
+        ),
+        returnValue: _i6.Future<_i5.GoogleSignInAccount?>.value(),
+        returnValueForMissingStub: _i6.Future<_i5.GoogleSignInAccount?>.value(),
+      ) as _i6.Future<_i5.GoogleSignInAccount?>);
+
+  @override
+  _i6.Future<_i5.GoogleSignInAccount?> disconnect() => (super.noSuchMethod(
+        Invocation.method(
+          #disconnect,
+          [],
+        ),
+        returnValue: _i6.Future<_i5.GoogleSignInAccount?>.value(),
+        returnValueForMissingStub: _i6.Future<_i5.GoogleSignInAccount?>.value(),
+      ) as _i6.Future<_i5.GoogleSignInAccount?>);
+
+  @override
+  _i6.Future<bool> requestScopes(List<String>? scopes) => (super.noSuchMethod(
+        Invocation.method(
+          #requestScopes,
+          [scopes],
+        ),
+        returnValue: _i6.Future<bool>.value(false),
+        returnValueForMissingStub: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
+
+  @override
+  _i6.Future<bool> canAccessScopes(
+    List<String>? scopes, {
+    String? accessToken,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #canAccessScopes,
+          [scopes],
+          {#accessToken: accessToken},
+        ),
+        returnValue: _i6.Future<bool>.value(false),
+        returnValueForMissingStub: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
+}
 
 /// A class which mocks [User].
 ///
@@ -1260,122 +1372,10 @@ class MockUser extends _i1.Mock implements _i4.User {
       ) as _i6.Future<void>);
 }
 
-/// A class which mocks [GoogleSignIn].
+/// A class which mocks [UserCredential].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGoogleSignIn extends _i1.Mock implements _i5.GoogleSignIn {
-  @override
-  _i8.SignInOption get signInOption => (super.noSuchMethod(
-        Invocation.getter(#signInOption),
-        returnValue: _i8.SignInOption.standard,
-        returnValueForMissingStub: _i8.SignInOption.standard,
-      ) as _i8.SignInOption);
-
-  @override
-  List<String> get scopes => (super.noSuchMethod(
-        Invocation.getter(#scopes),
-        returnValue: <String>[],
-        returnValueForMissingStub: <String>[],
-      ) as List<String>);
-
-  @override
-  bool get forceCodeForRefreshToken => (super.noSuchMethod(
-        Invocation.getter(#forceCodeForRefreshToken),
-        returnValue: false,
-        returnValueForMissingStub: false,
-      ) as bool);
-
-  @override
-  _i6.Stream<_i5.GoogleSignInAccount?> get onCurrentUserChanged =>
-      (super.noSuchMethod(
-        Invocation.getter(#onCurrentUserChanged),
-        returnValue: _i6.Stream<_i5.GoogleSignInAccount?>.empty(),
-        returnValueForMissingStub: _i6.Stream<_i5.GoogleSignInAccount?>.empty(),
-      ) as _i6.Stream<_i5.GoogleSignInAccount?>);
-
-  @override
-  _i6.Future<_i5.GoogleSignInAccount?> signInSilently({
-    bool? suppressErrors = true,
-    bool? reAuthenticate = false,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #signInSilently,
-          [],
-          {
-            #suppressErrors: suppressErrors,
-            #reAuthenticate: reAuthenticate,
-          },
-        ),
-        returnValue: _i6.Future<_i5.GoogleSignInAccount?>.value(),
-        returnValueForMissingStub: _i6.Future<_i5.GoogleSignInAccount?>.value(),
-      ) as _i6.Future<_i5.GoogleSignInAccount?>);
-
-  @override
-  _i6.Future<bool> isSignedIn() => (super.noSuchMethod(
-        Invocation.method(
-          #isSignedIn,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-        returnValueForMissingStub: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
-
-  @override
-  _i6.Future<_i5.GoogleSignInAccount?> signIn() => (super.noSuchMethod(
-        Invocation.method(
-          #signIn,
-          [],
-        ),
-        returnValue: _i6.Future<_i5.GoogleSignInAccount?>.value(),
-        returnValueForMissingStub: _i6.Future<_i5.GoogleSignInAccount?>.value(),
-      ) as _i6.Future<_i5.GoogleSignInAccount?>);
-
-  @override
-  _i6.Future<_i5.GoogleSignInAccount?> signOut() => (super.noSuchMethod(
-        Invocation.method(
-          #signOut,
-          [],
-        ),
-        returnValue: _i6.Future<_i5.GoogleSignInAccount?>.value(),
-        returnValueForMissingStub: _i6.Future<_i5.GoogleSignInAccount?>.value(),
-      ) as _i6.Future<_i5.GoogleSignInAccount?>);
-
-  @override
-  _i6.Future<_i5.GoogleSignInAccount?> disconnect() => (super.noSuchMethod(
-        Invocation.method(
-          #disconnect,
-          [],
-        ),
-        returnValue: _i6.Future<_i5.GoogleSignInAccount?>.value(),
-        returnValueForMissingStub: _i6.Future<_i5.GoogleSignInAccount?>.value(),
-      ) as _i6.Future<_i5.GoogleSignInAccount?>);
-
-  @override
-  _i6.Future<bool> requestScopes(List<String>? scopes) => (super.noSuchMethod(
-        Invocation.method(
-          #requestScopes,
-          [scopes],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-        returnValueForMissingStub: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
-
-  @override
-  _i6.Future<bool> canAccessScopes(
-    List<String>? scopes, {
-    String? accessToken,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #canAccessScopes,
-          [scopes],
-          {#accessToken: accessToken},
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-        returnValueForMissingStub: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
-}
+class MockUserCredential extends _i1.Mock implements _i4.UserCredential {}
 
 /// A class which mocks [GoogleSignInAccount].
 ///

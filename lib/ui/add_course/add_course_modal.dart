@@ -11,7 +11,8 @@ import '../widgets/neo_loading.dart';
 import '../widgets/neo_error.dart';
 
 class AddCourseModal extends ConsumerStatefulWidget {
-  const AddCourseModal({super.key});
+  final String? initialUrl;
+  const AddCourseModal({super.key, this.initialUrl});
 
   @override
   ConsumerState<AddCourseModal> createState() => _AddCourseModalState();
@@ -22,6 +23,14 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
   final _formKey = GlobalKey<FormState>();
   bool _addToExisting = false;
   String? _selectedCourseId;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialUrl != null && widget.initialUrl!.isNotEmpty) {
+      _urlController.text = widget.initialUrl!;
+    }
+  }
 
   @override // Dispose controller
   void dispose() {
@@ -83,8 +92,9 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
         right: 20,
         top: 20,
       ),
-      child: Form(
-        key: _formKey,
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,6 +178,7 @@ class _AddCourseModalState extends ConsumerState<AddCourseModal> {
             ),
             const SizedBox(height: 40),
           ],
+        ),
         ),
       ),
     ).animate().slide(begin: const Offset(0, 0.2), curve: Curves.easeOut);
