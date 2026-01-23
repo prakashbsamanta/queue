@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import '../../logic/auth/auth_provider.dart';
+
 import '../../core/theme.dart';
 import '../../logic/providers.dart';
 import '../../data/models/course.dart';
@@ -13,22 +17,92 @@ import '../settings/settings_screen.dart';
 import '../widgets/neo_loading.dart';
 import '../widgets/neo_error.dart';
 
-class DashboardScreen extends ConsumerWidget {
-  const DashboardScreen({super.key});
+class DashboardScreen extends ConsumerStatefulWidget {
+  final Duration openModalDelay;
+
+  const DashboardScreen({
+    super.key,
+    this.openModalDelay = const Duration(milliseconds: 500),
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  StreamSubscription? _intentDataStreamSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    try {
+      // For sharing or opening urls/text coming from outside the app while the app is in the memory
+      _intentDataStreamSubscription = ReceiveSharingIntent.instance
+          .getMediaStream()
+          .listen((List<SharedMediaFile> value) {
+        _handleSharedContent(value);
+      }, onError: (err) {
+        debugPrint("getIntentDataStream error: $err");
+      });
+
+      // For sharing or opening urls/text coming from outside the app while the app is closed
+      ReceiveSharingIntent.instance
+          .getInitialMedia()
+          .then((List<SharedMediaFile> value) {
+        _handleSharedContent(value);
+        // Optional: Tell the library that we are done processing the intent
+        ReceiveSharingIntent.instance.reset();
+      }).catchError((err) {
+        debugPrint("getInitialMedia error: $err");
+      });
+    } catch (e) {
+      debugPrint("Share Intent Init Error: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _intentDataStreamSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _handleSharedContent(List<SharedMediaFile> sharedFiles) {
+    if (sharedFiles.isNotEmpty) {
+      // Assuming text sharing puts the text in the path or we can inspect content
+      // receive_sharing_intent usually normalizes text to be allowed here.
+      // We take the first item.
+      final text = sharedFiles.first.path;
+      if (text.isNotEmpty) {
+        _openAddModal(text);
+      }
+    }
+  }
+
+  void _openAddModal(String text) {
+    if (!mounted) return;
+
+    // Add a small delay to ensure UI is ready if coming from cold start
+    Future.delayed(widget.openModalDelay, () {
+      if (mounted) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => AddCourseModal(initialUrl: text),
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final coursesAsync = ref.watch(allCoursesProvider);
     final currentFocus = ref.watch(currentFocusProvider);
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (context) => const AddCourseModal(),
-          );
+          _openAddModal('');
         },
         backgroundColor: AppTheme.accent,
         child: const Icon(Icons.add, color: Colors.black),
@@ -41,39 +115,33 @@ class DashboardScreen extends ConsumerWidget {
               child: Row(
                 children: [
                   // Text (Expanded to prevent overflow)
-                  
+
                   // Text (Expanded to prevent overflow)
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Good Morning,',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: AppTheme.textSecondary,
-                              ),
-                        ),
-                        Text(
-                          'Ready to Flow?',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith( // Reduced from displayLarge
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ), 
-                        ),
+                      children: const [
+                        _GreetingHeader(),
                       ],
                     ),
                   ),
-                  
+
                   // Chart Button (Right)
                   IconButton(
                     onPressed: () {
-                       Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SettingsScreen()));
                     },
                     icon: const Icon(Icons.settings, color: Colors.white),
                   ),
                   IconButton(
                     onPressed: () {
-                       Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalyticsScreen()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const AnalyticsScreen()));
                     },
                     icon: const Icon(Icons.bar_chart, color: AppTheme.accent),
                   ),
@@ -164,10 +232,11 @@ class _CurrentFocusCard extends StatelessWidget {
     return GlassCard(
       opacity: 0.1,
       onTap: () {
-         Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CourseDetailScreen(course: course)),
-          );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CourseDetailScreen(course: course)),
+        );
       },
       child: Row(
         children: [
@@ -228,9 +297,10 @@ class _CourseCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CourseDetailScreen(course: course)),
-          );
+          context,
+          MaterialPageRoute(
+              builder: (context) => CourseDetailScreen(course: course)),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -254,12 +324,13 @@ class _CourseCard extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: course.thumbnailUrl,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(color: AppTheme.surface),
+                  placeholder: (context, url) =>
+                      Container(color: AppTheme.surface),
                   errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
               ),
             ),
-             // Gradient Overlay
+            // Gradient Overlay
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -284,7 +355,7 @@ class _CourseCard extends StatelessWidget {
                 color: AppTheme.accent.withValues(alpha: 0.2),
               ),
             ),
-            
+
             // Content
             Padding(
               padding: const EdgeInsets.all(12),
@@ -322,6 +393,43 @@ class _CourseCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _GreetingHeader extends ConsumerWidget {
+  const _GreetingHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(authStateChangesProvider);
+    final user = userAsync.value;
+    final name = user?.displayName?.split(' ').first ?? 'User';
+
+    String greeting() {
+      final hour = DateTime.now().hour;
+      if (hour < 12) return 'Good Morning,';
+      if (hour < 17) return 'Good Afternoon,';
+      return 'Good Evening,';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          greeting(),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+        ),
+        Text(
+          name,
+          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+        ),
+      ],
     );
   }
 }

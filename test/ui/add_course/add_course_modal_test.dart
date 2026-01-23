@@ -117,4 +117,24 @@ void main() {
     // Logic calls next: video.copyWith(resourceType: 'youtube', content: ...)
     verify(mockCourseRepository.addVideoToCourse('c1', any)).called(1);
   });
+
+  testWidgets('AddCourseModal pre-fills text field when initialUrl is provided', (WidgetTester tester) async {
+    const initialUrl = 'https://example.com/shared';
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          youTubeServiceProvider.overrideWith((ref) => mockYouTubeService),
+          courseRepositoryProvider.overrideWith((ref) => mockCourseRepository),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: AddCourseModal(initialUrl: initialUrl)),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text(initialUrl), findsOneWidget);
+  });
 }
