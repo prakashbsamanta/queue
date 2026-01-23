@@ -8,6 +8,7 @@ import '../../data/models/video.dart';
 import '../../core/theme.dart';
 import '../widgets/glass_card.dart';
 import '../player/video_player_screen.dart';
+import '../reader/reader_screen.dart';
 
 class CourseDetailScreen extends ConsumerWidget {
   final Course course;
@@ -18,7 +19,7 @@ class CourseDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Calculate stats
     final completedVideos = course.videos.where((v) => v.isCompleted).length;
-    final progress = course.totalDuration > 0 
+    final progress = course.totalDuration > 0
         ? (course.watchedDuration / course.totalDuration)
         : 0.0;
     final remainingSeconds = course.totalDuration - course.watchedDuration;
@@ -41,7 +42,7 @@ class CourseDetailScreen extends ConsumerWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                   CachedNetworkImage(
+                  CachedNetworkImage(
                     imageUrl: course.thumbnailUrl,
                     fit: BoxFit.cover,
                   ),
@@ -72,7 +73,7 @@ class CourseDetailScreen extends ConsumerWidget {
                       label: 'Complete',
                       value: '${(progress * 100).toInt()}%',
                     ),
-                     _StatItem(
+                    _StatItem(
                       label: 'Left',
                       value: _formatDuration(remainingDuration),
                     ),
@@ -85,28 +86,43 @@ class CourseDetailScreen extends ConsumerWidget {
               ).animate().fadeIn().slideY(begin: 0.2, end: 0),
             ),
           ),
-           SliverList(
+          SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final video = course.videos[index];
                 final isCurrent = video.id == course.lastPlayedVideoId;
-                
+
                 return _VideoListItem(
                   video: video,
                   isCurrent: isCurrent,
                   index: index,
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => VideoPlayerScreen(
-                          course: course,
-                          initialVideoId: video.id,
+                    if (video.resourceType == 'url' ||
+                        video.resourceType == 'article') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ReaderScreen(
+                            url: video.content ?? '',
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VideoPlayerScreen(
+                            course: course,
+                            initialVideoId: video.id,
+                          ),
+                        ),
+                      );
+                    }
                   },
-                ).animate(delay: Duration(milliseconds: 30 * index)).fadeIn().slideX();
+                )
+                    .animate(delay: Duration(milliseconds: 30 * index))
+                    .fadeIn()
+                    .slideX();
               },
               childCount: course.videos.length,
             ),
