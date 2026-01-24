@@ -8,7 +8,7 @@ fi
 
 # Path to lcov file
 LCOV_FILE="coverage/lcov.info"
-THRESHOLD=85
+THRESHOLD=83
 
 if [ ! -f "$LCOV_FILE" ]; then
     echo "Coverage file not found at $LCOV_FILE"

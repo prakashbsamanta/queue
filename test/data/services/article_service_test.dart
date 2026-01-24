@@ -56,4 +56,28 @@ void main() {
       throwsException,
     );
   });
+
+  test('fetchArticle extracts thumbnail URL from og:image', () async {
+    const htmlWithThumbnail = '''
+      \u003chtml\u003e
+        \u003chead\u003e
+          \u003ctitle\u003eArticle with Image\u003c/title\u003e
+          \u003cmeta property="og:image" content="https://example.com/thumb.jpg"\u003e
+        \u003c/head\u003e
+        \u003cbody\u003e
+          \u003carticle\u003e
+            \u003cp\u003eArticle content here.\u003c/p\u003e
+          \u003c/article\u003e
+        \u003c/body\u003e
+      \u003c/html\u003e
+    ''';
+
+    when(mockClient.get(Uri.parse('https://example.com/article-with-image')))
+        .thenAnswer((_) async => http.Response(htmlWithThumbnail, 200));
+
+    final article = await articleService
+        .fetchArticle('https://example.com/article-with-image');
+
+    expect(article.thumbnailUrl, 'https://example.com/thumb.jpg');
+  });
 }

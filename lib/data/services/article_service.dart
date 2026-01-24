@@ -6,11 +6,13 @@ class ArticleContent {
   final String title;
   final String contentHtml;
   final String url;
+  final String? thumbnailUrl;
 
   ArticleContent({
     required this.title,
     required this.contentHtml,
     required this.url,
+    this.thumbnailUrl,
   });
 }
 
@@ -35,6 +37,35 @@ class ArticleService {
         ?.attributes['content'];
     title ??= document.querySelector('title')?.text;
     title ??= 'No Title';
+
+    // Heuristic 1.5: Thumbnail
+    // Try og:image, then twitter:image, then first img tag
+    String? thumbnailUrl = document
+        .querySelector('meta[property="og:image"]')
+        ?.attributes['content'];
+    thumbnailUrl ??= document
+        .querySelector('meta[name="twitter:image"]')
+        ?.attributes['content'];
+    thumbnailUrl ??= document
+        .querySelector('meta[property="og:image:url"]')
+        ?.attributes['content'];
+
+    // If no meta image, try to find first image in content
+    if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
+      final firstImg =
+          document.querySelector('article img, main img, .content img, img');
+      thumbnailUrl = firstImg?.attributes['src'];
+
+      // Make relative URLs absolute
+      if (thumbnailUrl != null && !thumbnailUrl.startsWith('http')) {
+        final uri = Uri.parse(url);
+        if (thumbnailUrl.startsWith('/')) {
+          thumbnailUrl = '${uri.scheme}://${uri.host}$thumbnailUrl';
+        } else {
+          thumbnailUrl = '${uri.scheme}://${uri.host}/$thumbnailUrl';
+        }
+      }
+    }
 
     // Heuristic 2: Content (Simplified)
     // Find the element with the most text content that isn't script, style, or nav
@@ -77,7 +108,12 @@ class ArticleService {
     final contentHtml =
         bestCandidate?.innerHtml ?? '<p>Could not extract content.</p>';
 
-    return ArticleContent(title: title, contentHtml: contentHtml, url: url);
+    return ArticleContent(
+      title: title,
+      contentHtml: contentHtml,
+      url: url,
+      thumbnailUrl: thumbnailUrl,
+    );
   }
 
   void _removeUnwantedTags(Document document) {
