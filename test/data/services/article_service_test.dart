@@ -80,4 +80,97 @@ void main() {
 
     expect(article.thumbnailUrl, 'https://example.com/thumb.jpg');
   });
+
+  test('fetchArticle extracts thumbnail from twitter:image fallback', () async {
+    const htmlWithTwitterImage = '''
+      <html>
+        <head>
+          <title>Article with Twitter Image</title>
+          <meta name="twitter:image" content="https://example.com/twitter-thumb.jpg">
+        </head>
+        <body>
+          <article>
+            <p>Article content here.</p>
+          </article>
+        </body>
+      </html>
+    ''';
+
+    when(mockClient.get(Uri.parse('https://example.com/twitter-article')))
+        .thenAnswer((_) async => http.Response(htmlWithTwitterImage, 200));
+
+    final article = await articleService
+        .fetchArticle('https://example.com/twitter-article');
+
+    expect(article.thumbnailUrl, 'https://example.com/twitter-thumb.jpg');
+  });
+
+  test('fetchArticle makes relative thumbnail URLs absolute', () async {
+    const htmlWithRelativeImage = '''
+      <html>
+        <head>
+          <title>Article with Relative Image</title>
+        </head>
+        <body>
+          <article>
+            <img src="/images/thumb.jpg">
+            <p>Article content here with enough text to score high.</p>
+          </article>
+        </body>
+      </html>
+    ''';
+
+    when(mockClient.get(Uri.parse('https://example.com/relative-article')))
+        .thenAnswer((_) async => http.Response(htmlWithRelativeImage, 200));
+
+    final article = await articleService
+        .fetchArticle('https://example.com/relative-article');
+
+    expect(article.thumbnailUrl, 'https://example.com/images/thumb.jpg');
+  });
+
+  test('fetchArticle handles relative URL without leading slash', () async {
+    const htmlWithRelativeNoSlash = '''
+      <html>
+        <head>
+          <title>Article</title>
+        </head>
+        <body>
+          <article>
+            <img src="images/thumb.jpg">
+            <p>Content here to make this the main article section.</p>
+          </article>
+        </body>
+      </html>
+    ''';
+
+    when(mockClient.get(Uri.parse('https://example.com/no-slash-article')))
+        .thenAnswer((_) async => http.Response(htmlWithRelativeNoSlash, 200));
+
+    final article = await articleService
+        .fetchArticle('https://example.com/no-slash-article');
+
+    expect(article.thumbnailUrl, 'https://example.com/images/thumb.jpg');
+  });
+
+  test('fetchArticle falls back to title tag when no og:title', () async {
+    const htmlNoOg = '''
+      <html>
+        <head>
+          <title>Simple Title</title>
+        </head>
+        <body>
+          <p>Main content paragraph with enough text to be selected.</p>
+        </body>
+      </html>
+    ''';
+
+    when(mockClient.get(Uri.parse('https://example.com/simple')))
+        .thenAnswer((_) async => http.Response(htmlNoOg, 200));
+
+    final article =
+        await articleService.fetchArticle('https://example.com/simple');
+
+    expect(article.title, 'Simple Title');
+  });
 }

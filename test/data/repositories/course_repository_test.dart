@@ -60,6 +60,64 @@ void main() {
     verify(mockBox.put(any, any)).called(1);
   });
 
+  test('updateVideoProgress does nothing if course not found', () async {
+    when(mockBox.get('nonexistent')).thenReturn(null);
+
+    await repository.updateVideoProgress('nonexistent', 'v1', 50);
+
+    verifyNever(mockBox.put(any, any));
+  });
+
+  test('updateVideoProgress does nothing if video not found in course',
+      () async {
+    final course = Course(
+        id: 'c1',
+        title: 'C1',
+        thumbnailUrl: 't',
+        sourceUrl: 'u',
+        totalDuration: 100,
+        videos: [],
+        dateAdded: DateTime.now());
+    when(mockBox.get('c1')).thenReturn(course);
+
+    await repository.updateVideoProgress('c1', 'nonexistent', 50);
+
+    verifyNever(mockBox.put(any, any));
+  });
+
+  test('addResourceToCourse does nothing if course not found', () async {
+    when(mockBox.get('nonexistent')).thenReturn(null);
+
+    await repository.addResourceToCourse('nonexistent', 'content', 'url');
+
+    verifyNever(mockBox.put(any, any));
+  });
+
+  test('deleteResourceFromCourse does nothing if course not found', () async {
+    when(mockBox.get('nonexistent')).thenReturn(null);
+
+    await repository.deleteResourceFromCourse('nonexistent', 'v1');
+
+    verifyNever(mockBox.put(any, any));
+  });
+
+  test('addVideoToCourse does nothing if course not found', () async {
+    when(mockBox.get('nonexistent')).thenReturn(null);
+
+    final video = Video(
+        id: 'v1',
+        youtubeId: 'y1',
+        title: 'V1',
+        thumbnailUrl: 't',
+        durationSeconds: 100,
+        watchedSeconds: 0,
+        isCompleted: false);
+
+    await repository.addVideoToCourse('nonexistent', video);
+
+    verifyNever(mockBox.put(any, any));
+  });
+
   test('updateVideoProgress updates video and saves course', () async {
     // Setup
     final video = Video(
@@ -89,6 +147,36 @@ void main() {
 
     // Check save called
     // Since mockBox.put is called by updateCourse inside updateVideoProgress
+    verify(mockBox.put('c1', any)).called(1);
+  });
+
+  test('updateVideoProgress marks video completed at 90% threshold', () async {
+    final video = Video(
+        id: 'v1',
+        youtubeId: 'y1',
+        title: 'V1',
+        thumbnailUrl: 't',
+        durationSeconds: 100,
+        watchedSeconds: 0,
+        isCompleted: false);
+    final course = Course(
+        id: 'c1',
+        title: 'C1',
+        thumbnailUrl: 't',
+        sourceUrl: 'u',
+        totalDuration: 100,
+        videos: [video],
+        dateAdded: DateTime.now());
+
+    when(mockBox.get('c1')).thenReturn(course);
+
+    // Watch 95 seconds (95% which is > 90% threshold)
+    await repository.updateVideoProgress('c1', 'v1', 95);
+
+    // Check video is marked completed
+    expect(course.videos.first.watchedSeconds, 95);
+    expect(course.videos.first.isCompleted, true);
+
     verify(mockBox.put('c1', any)).called(1);
   });
 
@@ -148,5 +236,75 @@ void main() {
     final captured = verify(mockBox.put('c1', captureAny)).captured;
     final savedCourse = captured.first as Course;
     expect(savedCourse.totalDuration, 150);
+  });
+
+  test('deleteResourceFromCourse removes video and updates durations',
+      () async {
+    final video1 = Video(
+        id: 'v1',
+        youtubeId: 'y1',
+        title: 'V1',
+        thumbnailUrl: 't',
+        durationSeconds: 60,
+        watchedSeconds: 30,
+        isCompleted: false);
+    final video2 = Video(
+        id: 'v2',
+        youtubeId: 'y2',
+        title: 'V2',
+        thumbnailUrl: 't',
+        durationSeconds: 40,
+        watchedSeconds: 20,
+        isCompleted: false);
+    final course = Course(
+        id: 'c1',
+        title: 'C1',
+        thumbnailUrl: 't',
+        sourceUrl: 'u',
+        totalDuration: 100,
+        watchedDuration: 50,
+        videos: [video1, video2],
+        dateAdded: DateTime.now());
+    when(mockBox.get('c1')).thenReturn(course);
+
+    await repository.deleteResourceFromCourse('c1', 'v1');
+
+    // Check video removed
+    expect(course.videos.length, 1);
+    expect(course.videos.first.id, 'v2');
+
+    // Check durations updated
+    final captured = verify(mockBox.put('c1', captureAny)).captured;
+    final savedCourse = captured.first as Course;
+    expect(savedCourse.totalDuration, 40); // 100 - 60
+    expect(savedCourse.watchedDuration, 20); // 50 - 30
+  });
+
+  test('deleteResourceFromCourse handles nonexistent video', () async {
+    final video = Video(
+        id: 'v1',
+        youtubeId: 'y1',
+        title: 'V1',
+        thumbnailUrl: 't',
+        durationSeconds: 60,
+        watchedSeconds: 30,
+        isCompleted: false);
+    final course = Course(
+        id: 'c1',
+        title: 'C1',
+        thumbnailUrl: 't',
+        sourceUrl: 'u',
+        totalDuration: 60,
+        watchedDuration: 30,
+        videos: [video],
+        dateAdded: DateTime.now());
+    when(mockBox.get('c1')).thenReturn(course);
+
+    // Try to delete nonexistent video
+    await repository.deleteResourceFromCourse('c1', 'nonexistent');
+
+    // Video should still be there, no put call made
+    expect(course.videos.length, 1);
+    verifyNever(mockBox.put(any, any));
   });
 }

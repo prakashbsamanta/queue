@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -42,7 +41,8 @@ void main() {
       when(mockAuthService.signUpWithEmail(email, password, name))
           .thenAnswer((_) async => mockUser);
 
-      final result = await authRepository.signUpWithEmail(email, password, name);
+      final result =
+          await authRepository.signUpWithEmail(email, password, name);
 
       verify(mockAuthService.signUpWithEmail(email, password, name)).called(1);
       expect(result, mockUser);
@@ -66,7 +66,8 @@ void main() {
     });
 
     test('signInWithGoogle delegates to AuthService', () async {
-      when(mockAuthService.signInWithGoogle()).thenAnswer((_) async => mockUser);
+      when(mockAuthService.signInWithGoogle())
+          .thenAnswer((_) async => mockUser);
       final result = await authRepository.signInWithGoogle();
       verify(mockAuthService.signInWithGoogle()).called(1);
       expect(result, mockUser);
@@ -75,6 +76,17 @@ void main() {
     test('sendPasswordResetEmail delegates to AuthService', () async {
       await authRepository.sendPasswordResetEmail(email);
       verify(mockAuthService.sendPasswordResetEmail(email)).called(1);
+    });
+
+    test('getAuthExceptionMessage delegates to AuthService', () {
+      final error = Exception('auth error');
+      when(mockAuthService.getAuthExceptionMessage(error))
+          .thenReturn('Friendly error message');
+
+      final result = authRepository.getAuthExceptionMessage(error);
+
+      verify(mockAuthService.getAuthExceptionMessage(error)).called(1);
+      expect(result, 'Friendly error message');
     });
   });
 }
