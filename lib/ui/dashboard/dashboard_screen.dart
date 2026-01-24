@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import '../../logic/auth/auth_provider.dart';
+import '../../data/repositories/course_repository.dart';
 
 import '../../core/theme.dart';
 import '../../logic/providers.dart';
@@ -390,9 +391,70 @@ class _CourseCard extends StatelessWidget {
                 ],
               ),
             ),
+
+            // Delete button (top-right)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => _showDeleteCourseDialog(context, course),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showDeleteCourseDialog(BuildContext context, Course course) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete Course?'),
+          content: Text(
+              'Are you sure you want to delete "${course.title}"? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                // Access ref from the outer context
+                final container = ProviderScope.containerOf(context);
+                final courseRepo = container.read(courseRepositoryProvider);
+                await courseRepo.deleteCourse(course.id);
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${course.title} deleted')),
+                  );
+                }
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

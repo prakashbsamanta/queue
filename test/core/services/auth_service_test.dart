@@ -66,10 +66,59 @@ void main() {
       verify(mockAuth.signOut()).called(1);
     });
 
-    test('getAuthExceptionMessage returns correct message', () {
+    test('getAuthExceptionMessage returns correct message for user-not-found',
+        () {
       final e = FirebaseAuthException(code: 'user-not-found');
       expect(authService.getAuthExceptionMessage(e),
           'There is no user corresponding to this email.');
+    });
+
+    test('getAuthExceptionMessage returns correct message for invalid-email',
+        () {
+      final e = FirebaseAuthException(code: 'invalid-email');
+      expect(authService.getAuthExceptionMessage(e),
+          'The email address is failing format validation.');
+    });
+
+    test('getAuthExceptionMessage returns correct message for user-disabled',
+        () {
+      final e = FirebaseAuthException(code: 'user-disabled');
+      expect(authService.getAuthExceptionMessage(e),
+          'The user corresponding to the given email has been disabled.');
+    });
+
+    test('getAuthExceptionMessage returns correct message for wrong-password',
+        () {
+      final e = FirebaseAuthException(code: 'wrong-password');
+      expect(authService.getAuthExceptionMessage(e),
+          'There is no user record corresponding to this identifier. The user may have been deleted.');
+    });
+
+    test(
+        'getAuthExceptionMessage returns correct message for email-already-in-use',
+        () {
+      final e = FirebaseAuthException(code: 'email-already-in-use');
+      expect(authService.getAuthExceptionMessage(e),
+          'The email address is already in use by another account.');
+    });
+
+    test('getAuthExceptionMessage returns correct message for weak-password',
+        () {
+      final e = FirebaseAuthException(code: 'weak-password');
+      expect(authService.getAuthExceptionMessage(e),
+          'The password provided is too weak.');
+    });
+
+    test('getAuthExceptionMessage returns default message for unknown code',
+        () {
+      final e = FirebaseAuthException(code: 'unknown-error');
+      expect(authService.getAuthExceptionMessage(e),
+          'An undefined Error happened.');
+    });
+
+    test(
+        'getAuthExceptionMessage returns toString for non-FirebaseAuthException',
+        () {
       expect(authService.getAuthExceptionMessage('error'), 'error');
     });
   });

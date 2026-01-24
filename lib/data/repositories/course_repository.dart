@@ -122,6 +122,34 @@ class CourseRepository {
       await _courseBox.put(course.id, updatedCourse);
     }
   }
+
+  Future<void> deleteResourceFromCourse(String courseId, String videoId) async {
+    final course = _courseBox.get(courseId);
+    if (course != null) {
+      final videoIndex = course.videos.indexWhere((v) => v.id == videoId);
+      if (videoIndex != -1) {
+        final removedVideo = course.videos[videoIndex];
+        course.videos.removeAt(videoIndex);
+
+        // Recalculate total duration
+        final newTotalDuration =
+            course.totalDuration - removedVideo.durationSeconds;
+        final newWatchedDuration =
+            course.watchedDuration - removedVideo.watchedSeconds;
+
+        final updatedCourse = course.copyWith(
+          totalDuration: newTotalDuration > 0 ? newTotalDuration : 0,
+          watchedDuration: newWatchedDuration > 0 ? newWatchedDuration : 0,
+          videos: course.videos,
+          isCompleted: course.videos.isEmpty
+              ? false
+              : course.videos.every((v) => v.isCompleted),
+        );
+
+        await _courseBox.put(course.id, updatedCourse);
+      }
+    }
+  }
 }
 
 @riverpod

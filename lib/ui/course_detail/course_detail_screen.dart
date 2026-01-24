@@ -5,24 +5,108 @@ import 'package:flutter_animate/flutter_animate.dart';
 // import 'package:intl/intl.dart';
 import '../../data/models/course.dart';
 import '../../data/models/video.dart';
+import '../../data/repositories/course_repository.dart';
 import '../../core/theme.dart';
 import '../widgets/glass_card.dart';
 import '../player/video_player_screen.dart';
 import '../reader/reader_screen.dart';
 
-class CourseDetailScreen extends ConsumerWidget {
+class CourseDetailScreen extends ConsumerStatefulWidget {
   final Course course;
 
   const CourseDetailScreen({super.key, required this.course});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CourseDetailScreen> createState() => _CourseDetailScreenState();
+}
+
+class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
+  late TextEditingController _titleController;
+  bool _isEditingTitle = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.course.title);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  bool get _isArticleCourse {
+    return widget.course.videos.any(
+      (v) => v.resourceType == 'url' || v.resourceType == 'article',
+    );
+  }
+
+  void _toggleTitleEdit() {
+    setState(() {
+      if (_isEditingTitle) {
+        // Save the new title
+        final newTitle = _titleController.text.trim();
+        if (newTitle.isNotEmpty && newTitle != widget.course.title) {
+          // Update the course title in the database
+          final courseRepo = ref.read(courseRepositoryProvider);
+          final updatedCourse = widget.course.copyWith(title: newTitle);
+          courseRepo.updateCourse(updatedCourse);
+        } else {
+          // Reset to original if empty
+          _titleController.text = widget.course.title;
+        }
+      }
+      _isEditingTitle = !_isEditingTitle;
+    });
+  }
+
+  void _deleteCourse() {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete Course?'),
+          content: Text(
+              'Are you sure you want to delete "${widget.course.title}"? This will delete all resources in this course. This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+
+                Navigator.pop(dialogContext); // Close dialog
+                final courseRepo = ref.read(courseRepositoryProvider);
+                await courseRepo.deleteCourse(widget.course.id);
+
+                navigator.pop(); // Go back to dashboard
+                messenger.showSnackBar(
+                  SnackBar(content: Text('${widget.course.title} deleted')),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Calculate stats
-    final completedVideos = course.videos.where((v) => v.isCompleted).length;
-    final progress = course.totalDuration > 0
-        ? (course.watchedDuration / course.totalDuration)
+    final completedVideos =
+        widget.course.videos.where((v) => v.isCompleted).length;
+    final progress = widget.course.totalDuration > 0
+        ? (widget.course.watchedDuration / widget.course.totalDuration)
         : 0.0;
-    final remainingSeconds = course.totalDuration - course.watchedDuration;
+    final remainingSeconds =
+        widget.course.totalDuration - widget.course.watchedDuration;
     final remainingDuration = Duration(seconds: remainingSeconds);
 
     return Scaffold(
@@ -32,18 +116,52 @@ class CourseDetailScreen extends ConsumerWidget {
             expandedHeight: 250,
             pinned: true,
             backgroundColor: AppTheme.background,
+            actions: [
+              IconButton(
+                icon: Icon(_isEditingTitle ? Icons.check : Icons.edit),
+                onPressed: _toggleTitleEdit,
+                tooltip: _isEditingTitle ? 'Save' : 'Edit Title',
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: _deleteCourse,
+                tooltip: 'Delete Course',
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                course.title,
-                style: const TextStyle(fontSize: 16),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              title: _isEditingTitle
+                  ? SizedBox(
+                      width: 200,
+                      child: TextField(
+                        controller: _titleController,
+                        style: const TextStyle(fontSize: 16),
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          border: OutlineInputBorder(),
+                        ),
+                        autofocus: true,
+                        onSubmitted: (_) => _toggleTitleEdit(),
+                      ),
+                    )
+                  : Text(
+                      widget.course.title,
+                      style: TextStyle(
+                        fontSize: _isArticleCourse ? 20 : 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+              titlePadding: EdgeInsets.only(
+                left: _isArticleCourse ? 48 : 56,
+                bottom: 16,
               ),
               background: Stack(
                 fit: StackFit.expand,
                 children: [
                   CachedNetworkImage(
-                    imageUrl: course.thumbnailUrl,
+                    imageUrl: widget.course.thumbnailUrl,
                     fit: BoxFit.cover,
                   ),
                   Container(
@@ -89,42 +207,93 @@ class CourseDetailScreen extends ConsumerWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                final video = course.videos[index];
-                final isCurrent = video.id == course.lastPlayedVideoId;
+                final video = widget.course.videos[index];
+                final isCurrent = video.id == widget.course.lastPlayedVideoId;
 
-                return _VideoListItem(
-                  video: video,
-                  isCurrent: isCurrent,
-                  index: index,
-                  onTap: () {
-                    if (video.resourceType == 'url' ||
-                        video.resourceType == 'article') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ReaderScreen(
-                            url: video.content ?? '',
-                          ),
-                        ),
-                      );
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => VideoPlayerScreen(
-                            course: course,
-                            initialVideoId: video.id,
-                          ),
-                        ),
+                return Dismissible(
+                  key: Key(video.id),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (direction) async {
+                    return await showDialog(
+                      context: context,
+                      builder: (BuildContext dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Delete Resource?'),
+                          content: Text(
+                              'Are you sure you want to delete "${video.title}"?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(dialogContext, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(dialogContext, true),
+                              style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  onDismissed: (direction) async {
+                    final courseRepo = ref.read(courseRepositoryProvider);
+                    await courseRepo.deleteResourceFromCourse(
+                        widget.course.id, video.id);
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${video.title} deleted')),
                       );
                     }
                   },
-                )
-                    .animate(delay: Duration(milliseconds: 30 * index))
-                    .fadeIn()
-                    .slideX();
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    child: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  child: _VideoListItem(
+                    video: video,
+                    isCurrent: isCurrent,
+                    index: index,
+                    onTap: () {
+                      if (video.resourceType == 'url' ||
+                          video.resourceType == 'article') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReaderScreen(
+                              url: video.content ?? '',
+                            ),
+                          ),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => VideoPlayerScreen(
+                              course: widget.course,
+                              initialVideoId: video.id,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  )
+                      .animate(delay: Duration(milliseconds: 30 * index))
+                      .fadeIn()
+                      .slideX(),
+                );
               },
-              childCount: course.videos.length,
+              childCount: widget.course.videos.length,
             ),
           ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 50)),
